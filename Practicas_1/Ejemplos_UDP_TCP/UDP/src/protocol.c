@@ -31,3 +31,23 @@ int parse(const uint8_t *buf, size_t buflen, mensaje_t *msg)
 }
 
 
+// Create an acknowledgment message inside a provided buffer where the ID is ACK_ID and the other fields are zeroed
+int acknowledge(uint8_t *buf, size_t buflen)
+{
+    if (buflen < sizeof(mensaje_t))
+    {
+        return -1;
+    }
+    // create the acknowledgment message
+    mensaje_t ack_msg;
+    ack_msg.sensor_id = ACK_ID;
+    ack_msg.temperatura = 0.0;
+    ack_msg.humedad = 0.0;
+
+    // serialize the acknowledgment message into the provided buffer
+    buf = serialize(&ack_msg, (uint8_t *)buf, buflen);
+    return 1;
+}
+
+
+

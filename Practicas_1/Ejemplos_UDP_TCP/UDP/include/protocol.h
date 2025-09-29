@@ -6,7 +6,7 @@
 typedef struct mensaje
 {
     //cada sensor tiene un id unico
-    char sensor_id[16];
+    int sensor_id;
 
     // los sensores envian su temperatura y humedad
     float temperatura;
@@ -14,9 +14,15 @@ typedef struct mensaje
 } mensaje_t;
 
 // arbitrary limit for the maximum size of a serialized mensaje_t
-#define MENSAJE__MAX_SIZE 512;
+#define MENSAJE_MAX_SIZE 12
+
+
+// Only the server will send back an acknowledgment message with this ID
+#define ACK_ID 1 
+
 
 // These functions serialize and parse the mensaje_t structure to/from a byte buffer to avoid losing data due to padding or alignment issues
-int proto_serialize(const mensaje_t *msg, uint8_t *buf, size_t buflen);
-int proto_parse(const uint8_t *buf, size_t buflen, mensaje_t *msg);
+int serialize(const mensaje_t *msg, uint8_t *buf, size_t buflen);
+int parse(const uint8_t *buf, size_t buflen, mensaje_t *msg);
+int acknowledge(const uint8_t *buf, size_t buflen);
 
