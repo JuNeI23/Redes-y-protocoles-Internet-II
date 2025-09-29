@@ -2,6 +2,17 @@
 
 #include "protocol.h"
 #include <string.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+
+
+
+
 
 // returns the message written in binary format in buf
 int serialize(const mensaje_t *msg, uint8_t *buf, size_t buflen)

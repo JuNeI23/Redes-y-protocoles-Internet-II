@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include "protocol.h"
 #include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 
 mensaje_t generate_data() {
 	mensaje_t msg;
@@ -34,10 +36,19 @@ int main() {
 
 	// open socket
 	int sock;
+	// Set socket timeout option
+	struct timeval tv = { .tv_sec = TIMEOUT_SEC, .tv_usec = 0 };
+
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+
 	if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
 		printf("Error en creacion de socket\n");
 		return 1;
 	}
+
+	// Number of times the message has been resent
+	int nb_resend = 0;
 
 	// data that will be sent to the server
 	mensaje_t data_to_send = generate_data();
@@ -54,12 +65,33 @@ int main() {
 
 	// received echoed data back
 	uint8_t buffer_recieve[100];
-	recvfrom(sock, buffer_recieve, len, 0, NULL, NULL);
-	
+	if (recvfrom(sock, buffer_recieve, len, 0, NULL, NULL) < 0) {
+		// If no acknowledgment is received within the timeout period, resend the message
+		if (nb_resend < MAX_RESEND) {
+			printf("No acknowledgment received. Resending message...\n");
+			sendto(sock, buffer_send, serialized_size, 0,
+			       (struct sockaddr*)&server_address, sizeof(server_address));
+			nb_resend++;
+		} else {
+			printf("No acknowledgment received after %d attempts. Exiting.\n", MAX_RESEND);
+			close(sock);
+			return 1;
+		}
+	}
 	// parse the data (transform from byte array to struct)
 	mensaje_t data_received;
 	parse(buffer_recieve, len, &data_received);
-
+	
+	// Verify if the received data is an acknowledgment
+	if (data_received.sensor_id == ACK_ID && data_received.temperatura == 0.0 && data_received.humedad == 0.0) {
+		printf("Acknowledgment received from server.\n");
+		close(sock);
+		return 0;
+	} else {
+		printf("Received data is not an acknowledgment. Exiting.\n");
+		close(sock);
+		return 1;
+	}
 
 	printf("Recibido: 'Sensor ID: %d, Temperatura: %f, Humedad: %f'\n",
 	       data_received.sensor_id, data_received.temperatura, data_received.humedad);
