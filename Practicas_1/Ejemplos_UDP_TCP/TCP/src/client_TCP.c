@@ -1,117 +1,126 @@
+// src/client_tcp.c
 #include <arpa/inet.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <unistd.h>
-#include "protocol.h"
-#include <stdlib.h>
-#include <time.h>
 #include <sys/time.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+
+#include "protocol.h"  
 
 
 static float rand_float_range(float min, float max) {
-	float scale = rand() / (float) RAND_MAX; // [0, 1.0]
-	return min + scale * (max - min);        // [min, max]
+    return min + ((float)rand() / (float)RAND_MAX) * (max - min);
 }
 
-
-mensaje_t generate_data() {
-	mensaje_t msg;
-	// Rellenar el mensaje con datos aleatorios
-	msg.sensor_id = 12;
-
-	
-	// Seed the random number generator beetween -20 and 50 for temperature and 0 to 100 for humidity
-	srand((unsigned)time(NULL));  
-
-    for (int i = 0; i < 10; i++) {
-        msg.temperatura = rand_float_range(-20.0f, 100.0f);
-		msg.humedad = rand_float_range(0.0f, 100.0f);
+static ssize_t read_exact(int fd, uint8_t *buf, size_t n) {
+    size_t got = 0;
+    while (got < n) {
+        ssize_t r = recv(fd, buf + got, n - got, 0);
+        if (r == 0) return 0;          
+        if (r < 0) {
+            if (errno == EINTR) continue;
+            return -1;
+        }
+        got += (size_t)r;
     }
-
-	printf("Generated data: Sensor ID %d, Temperature %.2f, Humidity %.2f\n",
-	       msg.sensor_id, msg.temperatura, msg.humedad);
-	return msg;
+    return (ssize_t)got;
 }
 
+static mensaje_t generate_data(void) {
+    mensaje_t msg;
+    msg.sensor_id   = 12;
+    msg.temperatura = rand_float_range(-20.0f, 100.0f);
+    msg.humedad     = rand_float_range(0.0f, 100.0f);
 
-int main() {
-	const char* server_name = "localhost";
-	const int server_port = 8877;
+    printf("Generated: sensor=%d temp=%.2fC hum=%.2f%%\n",
+           msg.sensor_id, msg.temperatura, msg.humedad);
+    return msg;
+}
 
-	struct sockaddr_in server_address;
-	memset(&server_address, 0, sizeof(server_address));
-	server_address.sin_family = AF_INET;
+int main(void) {
+    const char *server_ip  = "127.0.0.1";
+    const int   server_port = 8877;
 
-	// creates binary representation of server name
-	// and stores it as sin_addr
-	// http://beej.us/guide/bgnet/output/html/multipage/inet_ntopman.html
-	inet_pton(AF_INET, server_name, &server_address.sin_addr);
+    srand((unsigned)time(NULL));
 
-	// htons: port in network order format
-	server_address.sin_port = htons(server_port);
-
-
-
-
-
-	// open a stream socket
-	int sock;
-	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-		printf("Error en creacion de socket\n");
-		return 1;
-	}
+    // --- socket TCP + connect ---
+    int sock = socket(PF_INET, SOCK_STREAM, 0);
+    if (sock < 0) { perror("socket"); return 1; }
 
 	// Set socket timeout option
-	struct timeval tv = { .tv_sec = TIMEOUT_SEC, .tv_usec = 0 };
+    struct timeval tv = { .tv_sec = TIMEOUT_SEC, .tv_usec = 0 };
+    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        perror("setsockopt");
+        close(sock);
+        return 1;
+    }
+
+    struct sockaddr_in serv;
+    memset(&serv, 0, sizeof(serv));
+    serv.sin_family = AF_INET;
+    serv.sin_port   = htons(server_port);
+    if (inet_pton(AF_INET, server_ip, &serv.sin_addr) != 1) {
+        fprintf(stderr, "inet_pton failed for %s\n", server_ip);
+        close(sock);
+        return 1;
+    }
+
+    if (connect(sock, (struct sockaddr *)&serv, sizeof(serv)) < 0) {
+        perror("connect");
+        close(sock);
+        return 1;
+    }
 
 
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    mensaje_t msg = generate_data();
 
-	// Number of times the message has been resent
-	int nb_resend = 0;
+    uint8_t outbuf[MENSAJE_MAX_SIZE];
+    int outlen = serialize(&msg, outbuf, sizeof(outbuf));
+    if (outlen <= 0) {
+        fprintf(stderr, "serialize failed\n");
+        close(sock);
+        return 1;
+    }
 
-	// data that will be sent to the server
-	mensaje_t data_to_send = generate_data();
-
-	// TCP is connection oriented, a reliable connection
-	// **must** be established before any data is exchanged
-	if (connect(sock, (struct sockaddr*)&server_address,
-	            sizeof(server_address)) < 0) {
-		printf("Error en conexion a servidor\n");
-		return 1;
-	}
-
-	// serialise the data
-	uint8_t buffer_send[MENSAJE_MAX_SIZE];
-	int serialised = serialize(&data_to_send, buffer_send, sizeof(buffer_send));
+    ssize_t sent = send(sock, outbuf, (size_t)outlen, 0);
+    if (sent != outlen) {
+        perror("send");
+        close(sock);
+        return 1;
+    }
+    printf("Sent %d bytes to %s:%d\n", outlen, server_ip, server_port);
 
 
-	// data that will be sent to the server
-	send(sock, buffer_send, sizeof(buffer_send), 0);
+    uint8_t inbuf[MENSAJE_MAX_SIZE];
+    ssize_t r = read_exact(sock, inbuf, 12); 
+    if (r <= 0) {
+        if (r == 0) fprintf(stderr, "server closed connection\n");
+        else perror("recv");
+        close(sock);
+        return 1;
+    }
 
-	// receive
+    mensaje_t ack;
+    if (parse(inbuf, (size_t)r, &ack) <= 0) {
+        fprintf(stderr, "parse(ACK) failed\n");
+        close(sock);
+        return 1;
+    }
 
-	int n = 0;
-	int len = 0, maxlen = 100;
-	char buffer[maxlen];
-	char* pbuffer = buffer;
-
-	// will remain open until the server terminates the connection
-	while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
-		pbuffer += n;
-		maxlen -= n;
-		len += n;
-
-		buffer[len] = '\0';
-		printf("Recibido: '%s'\n", buffer);
-	}
-
-	// close the socket
-	close(sock);
-	return 0;
+    if (ack.sensor_id == ACK_ID && ack.temperatura == 0.0f && ack.humedad == 0.0f) {
+        printf("ACK received from server\n");
+        close(sock);
+        return 0;
+    } else {
+        printf("Unexpected response: sensor=%d temp=%.2f hum=%.2f\n",
+               ack.sensor_id, ack.temperatura, ack.humedad);
+        close(sock);
+        return 1;
+    }
 }
