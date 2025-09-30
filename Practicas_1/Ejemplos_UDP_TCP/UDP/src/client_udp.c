@@ -20,8 +20,7 @@ mensaje_t generate_data() {
 int main() {
 	// server address and port
 	const char* server_name = "127.0.0.1";
-	const int server_port = 8877;
-
+	const int server_port = 8877;	
 	struct sockaddr_in server_address;
 	memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
@@ -87,17 +86,24 @@ int main() {
 		printf("Acknowledgment received from server.\n");
 		close(sock);
 		return 0;
-	} else {
-		printf("Received data is not an acknowledgment. Exiting.\n");
-		close(sock);
-		return 1;
+	} else while (nb_resend < MAX_RESEND)
+	{
+		// resend the message if the received data is not an acknowledgment
+		sendto(sock, buffer_send, serialized_size, 0,
+			       (struct sockaddr*)&server_address, sizeof(server_address));
+		nb_resend++;
+		printf("Received data is not an acknowledgment. Message resent...\n");
+	}
+	 {
+		printf("Received data is not an acknowledgment. Resending message...\n");
+		sendto(sock, buffer_send, serialized_size, 0,
+		       (struct sockaddr*)&server_address, sizeof(server_address));
+		nb_resend++;
 	}
 
-	printf("Recibido: 'Sensor ID: %d, Temperatura: %f, Humedad: %f'\n",
-	       data_received.sensor_id, data_received.temperatura, data_received.humedad);
-
-	// close the socket
+	// close the socket after number of resends
 	close(sock);
-	return 0;
+	printf("No acknowledgment received after %d attempts. Exiting.\n", MAX_RESEND);
+	return 1;
 }
 
