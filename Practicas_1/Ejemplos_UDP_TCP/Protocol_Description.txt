@@ -1,0 +1,20 @@
+Nuestro protocolo permite la comunicación entre varios sensores, con un identificador > 1, y un servidor con el identificador 1.
+
+Los datos transportados son el identificador (int), la temperatura (float) y la humedad (float entre 0 y 100).
+Estos datos se convierten a binario y se envían por TCP o UDP.
+
+Nuestro protocolo no es orientado a conexión, pero utiliza acuse de recibo (ACK) para verificar que los sensores respetan la estructura del protocolo.
+
+Funcionamiento:
+
+1)Un sensor envía un mensaje al servidor.
+
+2)El servidor lo recibe y verifica:
+    a) Si el mensaje es correcto, envía un ACK.
+    b) Si no es correcto, no envía nada.
+
+    a) Si el sensor recibe el ACK, el intercambio termina con éxito.
+    b) Si no recibe nada tras un tiempo definido, reenvía su mensaje; tras N envíos fallidos, abandona y el intercambio termina en error.
+
+En el ACK, el servidor indica que su ID es 01 y deja vacíos los campos de temperatura y humedad.
+Podemos imaginar una versión más avanzada en la que esos campos vacíos se utilicen para transmitir información de control a los sensores.
