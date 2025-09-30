@@ -31,4 +31,5 @@ typedef struct mensaje
 int serialize(const mensaje_t *msg, uint8_t *buf, size_t buflen);
 int parse(const uint8_t *buf, size_t buflen, mensaje_t *msg);
 int acknowledge(uint8_t *buf, size_t buflen);
+int verify_data(const mensaje_t *msg);
 

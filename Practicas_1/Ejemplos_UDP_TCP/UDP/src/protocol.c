@@ -17,29 +17,49 @@
 // returns the message written in binary format in buf
 int serialize(const mensaje_t *msg, uint8_t *buf, size_t buflen)
 {
-    if (buflen < sizeof(mensaje_t))
-    {
-        return -1;
-    }
-    // copy the message to the buffer (goes from struct to binary)
-    memcpy(buf, msg, sizeof(mensaje_t));
-    htonl(msg->sensor_id);
-    htonl(msg->temperatura);
-    htonl(msg->humedad);
-    return sizeof(mensaje_t);
+    if (!msg || !buf || buflen < 12) return -1;
+
+    // int
+    uint32_t sid_be = htonl((uint32_t)msg->sensor_id);
+    memcpy(buf + 0, &sid_be, 4);
+
+    // float temperatura
+    uint32_t tmp;
+    memcpy(&tmp, &msg->temperatura, 4);  // copier les bits
+    tmp = htonl(tmp);
+    memcpy(buf + 4, &tmp, 4);
+
+    // float humedad
+    memcpy(&tmp, &msg->humedad, 4);
+    tmp = htonl(tmp);
+    memcpy(buf + 8, &tmp, 4);
+
+    return 12;
 }
 
-// returns the message read from the binary buffer
 int parse(const uint8_t *buf, size_t buflen, mensaje_t *msg)
 {
-    if (buflen < sizeof(mensaje_t))
-    {
-        return -1;
-    }
-    // copy the buffer to the message (goes from binary to struct)
-    memcpy(msg, buf, sizeof(mensaje_t));
-    return sizeof(mensaje_t);
+    if (!buf || !msg || buflen < 12) return -1;
+
+    // int
+    uint32_t sid_be;
+    memcpy(&sid_be, buf + 0, 4);
+    msg->sensor_id = (int32_t)ntohl(sid_be);
+
+    // float temperatura
+    uint32_t tmp;
+    memcpy(&tmp, buf + 4, 4);
+    tmp = ntohl(tmp);
+    memcpy(&msg->temperatura, &tmp, 4);
+
+    // float humedad
+    memcpy(&tmp, buf + 8, 4);
+    tmp = ntohl(tmp);
+    memcpy(&msg->humedad, &tmp, 4);
+
+    return 12;
 }
+
 
 
 // Create an acknowledgment message inside a provided buffer where the ID is ACK_ID and the other fields are zeroed
@@ -61,4 +81,10 @@ int acknowledge(uint8_t *buf, size_t buflen)
 }
 
 
-
+int verify_data(const mensaje_t *msg) {
+    // the ID 1 is reserved for the server
+    if (msg->sensor_id < 2 || msg->sensor_id > 1000) {
+        return 0; // Invalid sensor ID
+    }
+    return 1; // Data is valid
+}

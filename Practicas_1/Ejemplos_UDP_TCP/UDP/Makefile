@@ -1,45 +1,41 @@
 # compilateur et options
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude
+CC      = gcc
+CFLAGS  = -Wall -Wextra -std=c11 -Iinclude
 
 # dossiers
-SRC = src
-OBJ = obj
-BIN = bin
+SRC_DIR = src
+OBJ_DIR = obj
+BIN_DIR = bin
 
-# exécutables
-EXECS = $(BIN)/client_udp $(BIN)/server_udp $(BIN)/client_tcp $(BIN)/server_tcp
+# sources et objets
+SRCS        := $(wildcard $(SRC_DIR)/*.c)
+OBJS        := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+PROTO_OBJ   := $(OBJ_DIR)/protocol.o
 
-# règles principales
-all: $(EXECS)
+# exécutables détectés automatiquement (client_* et server_*)
+PROGS := $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%,$(filter $(SRC_DIR)/client_%.c $(SRC_DIR)/server_%.c,$(SRCS)))
 
-# règle générique : .c -> .o
-$(OBJ)/%.o: $(SRC)/%.c
-	@mkdir -p $(OBJ)
+.PHONY: all clean
+all: $(PROGS)
+
+# règle générique .c -> .o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# protocol.o
-$(OBJ)/protocol.o: $(SRC)/protocol.c include/protocol.h
-	@mkdir -p $(OBJ)
+# protocol.o dépend explicitement du header
+$(PROTO_OBJ): $(SRC_DIR)/protocol.c include/protocol.h | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# liens pour chaque exécutable
-$(BIN)/client_udp: $(OBJ)/client_udp.o $(OBJ)/protocol.o
-	@mkdir -p $(BIN)
+# lien de chaque binaire avec son objet + protocol.o
+$(BIN_DIR)/%: $(OBJ_DIR)/%.o $(PROTO_OBJ) | $(BIN_DIR)
 	$(CC) $^ -o $@
 
-$(BIN)/server_udp: $(OBJ)/server_udp.o $(OBJ)/protocol.o
-	@mkdir -p $(BIN)
-	$(CC) $^ -o $@
+# création des dossiers
+$(OBJ_DIR):
+	@mkdir -p $@
 
-$(BIN)/client_tcp: $(OBJ)/client_tcp.o $(OBJ)/protocol.o
-	@mkdir -p $(BIN)
-	$(CC) $^ -o $@
+$(BIN_DIR):
+	@mkdir -p $@
 
-$(BIN)/server_tcp: $(OBJ)/server_tcp.o $(OBJ)/protocol.o
-	@mkdir -p $(BIN)
-	$(CC) $^ -o $@
-
-# nettoyage
 clean:
-	rm -rf $(OBJ) $(BIN)
+	rm -rf $(OBJ_DIR) $(BIN_DIR)

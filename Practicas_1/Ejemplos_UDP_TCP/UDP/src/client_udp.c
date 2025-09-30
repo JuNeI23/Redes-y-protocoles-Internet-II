@@ -7,13 +7,34 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+
+
+static float rand_float_range(float min, float max) {
+	float scale = rand() / (float) RAND_MAX; // [0, 1.0]
+	return min + scale * (max - min);        // [min, max]
+}
 
 mensaje_t generate_data() {
 	mensaje_t msg;
 	// Rellenar el mensaje con datos aleatorios
 	msg.sensor_id = 12;
-	msg.temperatura = rand();
-	msg.humedad = rand();
+
+	
+	// Seed the random number generator beetween -20 and 50 for temperature and 0 to 100 for humidity
+	srand((unsigned)time(NULL));  
+
+    for (int i = 0; i < 10; i++) {
+        msg.temperatura = rand_float_range(-20.0f, 100.0f);
+		msg.humedad = rand_float_range(0.0f, 100.0f);
+    }
+
+	printf("Generated data: Sensor ID %d, Temperature %.2f, Humidity %.2f\n",
+	       msg.sensor_id, msg.temperatura, msg.humedad);
 	return msg;
 }
 
@@ -38,13 +59,14 @@ int main() {
 	// Set socket timeout option
 	struct timeval tv = { .tv_sec = TIMEOUT_SEC, .tv_usec = 0 };
 
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-
+	
 
 	if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
 		printf("Error en creacion de socket\n");
 		return 1;
 	}
+
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
 	// Number of times the message has been resent
 	int nb_resend = 0;
@@ -58,25 +80,35 @@ int main() {
 	int serialized_size = serialize(&data_to_send, buffer_send, sizeof(buffer_send));
 
 	// send data
+	printf("Sending data to server %s : \n", server_name);
 	int len =
 	    sendto(sock, buffer_send, serialized_size, 0,
 	           (struct sockaddr*)&server_address, sizeof(server_address));
+	
+	printf("data sent \n");
+
+	bool NO_MESSAGE_RECEIVED = true;
 
 	// received echoed data back
 	uint8_t buffer_recieve[100];
-	if (recvfrom(sock, buffer_recieve, len, 0, NULL, NULL) < 0) {
-		// If no acknowledgment is received within the timeout period, resend the message
-		if (nb_resend < MAX_RESEND) {
-			printf("No acknowledgment received. Resending message...\n");
-			sendto(sock, buffer_send, serialized_size, 0,
-			       (struct sockaddr*)&server_address, sizeof(server_address));
-			nb_resend++;
+	while (nb_resend < MAX_RESEND && NO_MESSAGE_RECEIVED) {
+		if (recvfrom(sock, buffer_recieve, len, 0, NULL, NULL) < 0) {
+			// If no acknowledgment is received within the timeout period, resend the message
+			if (nb_resend < MAX_RESEND) {
+				printf("No acknowledgment received. Resending message...\n");
+				sendto(sock, buffer_send, serialized_size, 0,
+					(struct sockaddr*)&server_address, sizeof(server_address));
+				nb_resend++;
+			} else {
+				printf("No acknowledgment received after %d attempts. Exiting.\n", MAX_RESEND);
+				close(sock);
+				return 1;
+			}
 		} else {
-			printf("No acknowledgment received after %d attempts. Exiting.\n", MAX_RESEND);
-			close(sock);
-			return 1;
+			NO_MESSAGE_RECEIVED = false;
 		}
 	}
+
 	// parse the data (transform from byte array to struct)
 	mensaje_t data_received;
 	parse(buffer_recieve, len, &data_received);
