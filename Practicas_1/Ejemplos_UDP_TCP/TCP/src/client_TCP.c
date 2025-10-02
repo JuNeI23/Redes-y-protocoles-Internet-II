@@ -1,126 +1,130 @@
-// src/client_tcp.c
 #include <arpa/inet.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/time.h>
-#include <time.h>
 #include <unistd.h>
-
-#include "protocol.h"  
-
+#include "protocol.h"
+#include <time.h>
 
 static float rand_float_range(float min, float max) {
-    return min + ((float)rand() / (float)RAND_MAX) * (max - min);
+	float scale = rand() / (float) RAND_MAX; // [0, 1.0]
+	return min + scale * (max - min);        // [min, max]
 }
 
-static ssize_t read_exact(int fd, uint8_t *buf, size_t n) {
-    size_t got = 0;
-    while (got < n) {
-        ssize_t r = recv(fd, buf + got, n - got, 0);
-        if (r == 0) return 0;          
-        if (r < 0) {
-            if (errno == EINTR) continue;
-            return -1;
-        }
-        got += (size_t)r;
-    }
-    return (ssize_t)got;
+mensaje_t generate_debug_data() {
+	mensaje_t msg;
+	// Rellenar el mensaje con datos aleatorios
+	msg.sensor_id = 2;
+	msg.temperatura = 3.0;
+	msg.humedad = 4.0;
+
+	printf("Generated data: Sensor ID %d, Temperature %.2f, Humidity %.2f\n",
+	       msg.sensor_id, msg.temperatura, msg.humedad);
+	return msg;
 }
 
-static mensaje_t generate_data(void) {
-    mensaje_t msg;
-    msg.sensor_id   = 12;
-    msg.temperatura = rand_float_range(-20.0f, 100.0f);
-    msg.humedad     = rand_float_range(0.0f, 100.0f);
+mensaje_t generate_data() {
+	mensaje_t msg;
+	// Rellenar el mensaje con datos aleatorios
+	msg.sensor_id = 12;
 
-    printf("Generated: sensor=%d temp=%.2fC hum=%.2f%%\n",
-           msg.sensor_id, msg.temperatura, msg.humedad);
-    return msg;
+	
+	// Seed the random number generator beetween -20 and 50 for temperature and 0 to 100 for humidity
+	srand((unsigned)time(NULL));  
+
+    
+	msg.temperatura = rand_float_range(-20.0f, 100.0f);
+	msg.humedad = rand_float_range(0.0f, 100.0f);
+
+
+	printf("Generated data: Sensor ID %d, Temperature %.2f, Humidity %.2f\n",
+	       msg.sensor_id, msg.temperatura, msg.humedad);
+	return msg;
 }
 
-int main(void) {
-    const char *server_ip  = "127.0.0.1";
-    const int   server_port = 8877;
+int main() {
+	const char* server_name = "localhost";
+	const int server_port = 8877;
 
-    srand((unsigned)time(NULL));
+	struct sockaddr_in server_address;
+	memset(&server_address, 0, sizeof(server_address));
+	server_address.sin_family = AF_INET;
 
-    // --- socket TCP + connect ---
-    int sock = socket(PF_INET, SOCK_STREAM, 0);
-    if (sock < 0) { perror("socket"); return 1; }
+	// creates binary representation of server name
+	// and stores it as sin_addr
+	// http://beej.us/guide/bgnet/output/html/multipage/inet_ntopman.html
+	inet_pton(AF_INET, server_name, &server_address.sin_addr);
 
-	// Set socket timeout option
-    struct timeval tv = { .tv_sec = TIMEOUT_SEC, .tv_usec = 0 };
-    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-        perror("setsockopt");
-        close(sock);
-        return 1;
-    }
+	// htons: port in network order format
+	server_address.sin_port = htons(server_port);
 
-    struct sockaddr_in serv;
-    memset(&serv, 0, sizeof(serv));
-    serv.sin_family = AF_INET;
-    serv.sin_port   = htons(server_port);
-    if (inet_pton(AF_INET, server_ip, &serv.sin_addr) != 1) {
-        fprintf(stderr, "inet_pton failed for %s\n", server_ip);
-        close(sock);
-        return 1;
-    }
+	// open a stream socket
+	int sock;
+	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("Error en creacion de socket\n");
+		return 1;
+	}
 
-    if (connect(sock, (struct sockaddr *)&serv, sizeof(serv)) < 0) {
-        perror("connect");
-        close(sock);
-        return 1;
-    }
+	// TCP is connection oriented, a reliable connection
+	// **must** be established before any data is exchanged
+	if (connect(sock, (struct sockaddr*)&server_address,
+	            sizeof(server_address)) < 0) {
+		printf("Error en conexion a servidor\n");
+		return 1;
+	}
 
+	// send
 
-    mensaje_t msg = generate_data();
+	// data that will be sent to the server
+	mensaje_t message_send = generate_debug_data();
+	uint8_t buffer_send[MENSAJE_MAX_SIZE];
 
-    uint8_t outbuf[MENSAJE_MAX_SIZE];
-    int outlen = serialize(&msg, outbuf, sizeof(outbuf));
-    if (outlen <= 0) {
-        fprintf(stderr, "serialize failed\n");
-        close(sock);
-        return 1;
-    }
+	if(serialize(&message_send, buffer_send, MENSAJE_MAX_SIZE) == 12) {
+		printf("Sending data to the server...\n");
+		send(sock, buffer_send, sizeof(buffer_send), 0);
+		printf("Data sent\n");
+	}
 
-    ssize_t sent = send(sock, outbuf, (size_t)outlen, 0);
-    if (sent != outlen) {
-        perror("send");
-        close(sock);
-        return 1;
-    }
-    printf("Sent %d bytes to %s:%d\n", outlen, server_ip, server_port);
+	// receive
 
+	int n = 0;
+	int len = 0, maxlen = 100;
+	uint8_t buffer_recieve[maxlen];
+	uint8_t* pbuffer = buffer_recieve;
+	printf("Waiting for the server to acknowledge the data...\n");
+	// will remain open until the server terminates the connection
+	while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
+		pbuffer += n;
+		maxlen -= n;
+		len += n;
 
-    uint8_t inbuf[MENSAJE_MAX_SIZE];
-    ssize_t r = read_exact(sock, inbuf, 12); 
-    if (r <= 0) {
-        if (r == 0) fprintf(stderr, "server closed connection\n");
-        else perror("recv");
-        close(sock);
-        return 1;
-    }
-
-    mensaje_t ack;
-    if (parse(inbuf, (size_t)r, &ack) <= 0) {
-        fprintf(stderr, "parse(ACK) failed\n");
-        close(sock);
-        return 1;
-    }
-
-    if (ack.sensor_id == ACK_ID && ack.temperatura == 0.0f && ack.humedad == 0.0f) {
-        printf("ACK received from server\n");
-        close(sock);
-        return 0;
-    } else {
-        printf("Unexpected response: sensor=%d temp=%.2f hum=%.2f\n",
-               ack.sensor_id, ack.temperatura, ack.humedad);
-        close(sock);
-        return 1;
-    }
+		if (debug_print_msg(buffer_recieve, len) != 0) {
+			printf("Error printing the received message\n");
+			return -1;
+		}
+		mensaje_t message_recieved;
+		printf("Data recieved from server \n");
+		if(parse(buffer_recieve,MENSAJE_MAX_SIZE,&message_recieved) == 12){
+			if(message_recieved.sensor_id == 1){
+				// the acknowledgement is correct
+				printf("The server has acknowledged receiving the data, exiting... \n");
+				close(sock);
+				return 0;
+			} else {
+				printf("Here is the data received from the server: Sensor ID %d, Temperature %.2f, Humidity %.2f\n",
+				       message_recieved.sensor_id, message_recieved.temperatura,
+				       message_recieved.humedad);
+				printf("The server has not acknowledged receiving the data correctly, exiting... \n");
+				close(sock);
+				return -1;
+			} 
+		} else {
+			printf("Error parsing the message\n");
+			return -1;
+		}
+	}
+	printf("Closing the socket\n");
+	// close the socket
+	close(sock);
+	return 0;
 }

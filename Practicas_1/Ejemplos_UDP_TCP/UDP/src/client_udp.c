@@ -28,10 +28,10 @@ mensaje_t generate_data() {
 	// Seed the random number generator beetween -20 and 50 for temperature and 0 to 100 for humidity
 	srand((unsigned)time(NULL));  
 
-    for (int i = 0; i < 10; i++) {
-        msg.temperatura = rand_float_range(-20.0f, 100.0f);
-		msg.humedad = rand_float_range(0.0f, 100.0f);
-    }
+    
+	msg.temperatura = rand_float_range(-20.0f, 100.0f);
+	msg.humedad = rand_float_range(0.0f, 100.0f);
+
 
 	printf("Generated data: Sensor ID %d, Temperature %.2f, Humidity %.2f\n",
 	       msg.sensor_id, msg.temperatura, msg.humedad);
@@ -92,9 +92,11 @@ int main() {
 	// received echoed data back
 	uint8_t buffer_recieve[100];
 	while (nb_resend < MAX_RESEND && NO_MESSAGE_RECEIVED) {
+		wait(0.01); // wait 0.01 seconds before trying to receive
 		if (recvfrom(sock, buffer_recieve, len, 0, NULL, NULL) < 0) {
 			// If no acknowledgment is received within the timeout period, resend the message
 			if (nb_resend < MAX_RESEND) {
+				wait(1);
 				printf("No acknowledgment received. Resending message...\n");
 				sendto(sock, buffer_send, serialized_size, 0,
 					(struct sockaddr*)&server_address, sizeof(server_address));
@@ -125,12 +127,6 @@ int main() {
 			       (struct sockaddr*)&server_address, sizeof(server_address));
 		nb_resend++;
 		printf("Received data is not an acknowledgment. Message resent...\n");
-	}
-	 {
-		printf("Received data is not an acknowledgment. Resending message...\n");
-		sendto(sock, buffer_send, serialized_size, 0,
-		       (struct sockaddr*)&server_address, sizeof(server_address));
-		nb_resend++;
 	}
 
 	// close the socket after number of resends

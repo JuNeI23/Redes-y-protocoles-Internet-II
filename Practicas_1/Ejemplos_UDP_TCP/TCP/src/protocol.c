@@ -76,15 +76,31 @@ int acknowledge(uint8_t *buf, size_t buflen)
     ack_msg.humedad = 0.0;
 
     // serialize the acknowledgment message into the provided buffer
-    buf = serialize(&ack_msg, (uint8_t *)buf, buflen);
-    return 1;
+    if(serialize(&ack_msg, (uint8_t *)buf, buflen)){
+        return 0;
+    }
+    return -1;
 }
 
 
 int verify_data(const mensaje_t *msg) {
     // the ID 1 is reserved for the server
     if (msg->sensor_id < 2 || msg->sensor_id > 1000) {
-        return 0; // Invalid sensor ID
+        return -1; // Invalid sensor ID
     }
-    return 1; // Data is valid
+    return 0; // Data is valid
+}
+
+int debug_print_msg(const uint8_t *buf, size_t len) {
+    printf("Buffer dump (%zu bytes):\n", len);
+    for (size_t i = 0; i < len; i++) {
+        printf("%02X ", buf[i]);   // hexadécimal sur 2 chiffres
+        if ((i + 1) % 16 == 0) {   // retour à la ligne tous les 16 octets
+            printf("\n");
+        }
+    }
+    if (len % 16 != 0) {
+        printf("\n");
+    }
+    return 0;
 }

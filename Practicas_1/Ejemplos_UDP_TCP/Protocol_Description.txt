@@ -18,3 +18,8 @@ Funcionamiento:
 
 En el ACK, el servidor indica que su ID es 01 y deja vacíos los campos de temperatura y humedad.
 Podemos imaginar una versión más avanzada en la que esos campos vacíos se utilicen para transmitir información de control a los sensores.
+
+
+los screenshots de Wireshark son en el documento ./screenshots
+
+Con la solución TCP, el flujo no permite aislar fácilmente el mensaje enviado, por lo que nuestra solución de envío por bits no está completamente implementada sobre TCP.
