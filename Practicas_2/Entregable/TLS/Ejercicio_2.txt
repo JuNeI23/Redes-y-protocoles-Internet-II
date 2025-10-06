@@ -1,0 +1,16 @@
+1) Handshake
+
+El intercambio de mensajes en DTLS es casi idéntico al de TLS :
+Client Hello → Server Hello → Certificate → Server Key Exchange → Server Hello Done → Client Key Exchange → Change Cipher Spec → Finished.
+
+La única diferencia visible es la presencia del mensaje adicional “Hello Verify Request” enviado por el servidor justo después del primer Client Hello.
+Este mensaje no existe en TLS. 
+
+Además, DTLS utiliza numeración de mensajes y un control de retransmisiones, ya que se apoya en UDP.
+
+2) Transferencia de datos
+
+En la captura se observan paquetes DTLSv1.2 Application Data y Encrypted Alert, similares a los de TLS, pero con nuevos encabezados:
+
+    Epoch: indica la fase criptográfica (clave de sesión actual).
+    Sequence Number: número de secuencia único por paquete, usado para detectar pérdidas o duplicados.

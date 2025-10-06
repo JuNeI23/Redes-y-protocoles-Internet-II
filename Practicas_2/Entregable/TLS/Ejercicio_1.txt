@@ -1,0 +1,19 @@
+Informe sobre la conexión TLS :
+
+En las capturas de Wireshark se observa el proceso de handshake y el inicio del intercambio de datos cifrados.
+
+1) Fase de handshake
+En la primera captura (TLS_trace.png), todos los paquetes aparecen como TLSv1.2.
+
+    El cliente inicia la conexión con un Client Hello, donde indica la versión TLS, los algoritmos y un valor aleatorio.
+    El servidor responde con un Server Hello, su certificado y los parámetros de intercambio de claves (Server Key Exchange), cerrando esta parte con Server Hello Done.
+    El cliente envía entonces su Client Key Exchange, con el material para generar la clave compartida, y ambos confirman el paso al modo cifrado con los mensajes Change Cipher Spec y Finished, ya cifrados.
+
+2) Fase de transferencia
+
+En la segunda captura (Trace_transferencia_datos.png), todos los paquetes aparecen como TLSv1.2 Application Data o Encrypted Alert.
+Esto confirma que el handshake terminó correctamente y que el canal está funcionando en modo cifrado.
+Los paquetes Application Data contienen los datos reales de la aplicación, protegidos por el TLS Record Protocol. Su contenido ya no es visible en Wireshark,
+podemos a observar lo en la captura (Encrypted_data_transfered.png).
+
+Los Encrypted Alert son mensajes de cierre o notificaciones internas de TLS (por ejemplo, “close notify”), también cifrados para mantener la confidencialidad.
