@@ -1,0 +1,86 @@
+Command: ninja flash
+[1/5] cd /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/esp-idf/esptool_py && /home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/duke-nicolas/esp/v5.5.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/partition_table/partition-table.bin /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/wolfssl_client.bin
+wolfssl_client.bin binary size 0x112ca0 bytes. Smallest app partition is 0x177000 bytes. 0x64360 bytes (27%) free.
+[2/5] Performing build step for 'bootloader'
+[1/1] cd /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/bootloader/esp-idf/esptool_py && /home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/duke-nicolas/esp/v5.5.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/bootloader/bootloader.bin
+Bootloader binary size 0x6530 bytes. 0xad0 bytes (10%) free.
+[3/5] No install step for 'bootloader'
+[4/5] Completed 'bootloader'
+[4/5] cd /home/duke-nicolas/esp/v5.5.1/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH=/home/duke-nicolas/esp/v5.5.1/esp-idf -D "SERIAL_TOOL=/home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python;;/home/duke-nicolas/esp/v5.5.1/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build -P /home/duke-nicolas/esp/v5.5.1/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32 -p /dev/ttyUSB0 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 2MB 0x1000 bootloader/bootloader.bin 0x10000 wolfssl_client.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.10.0
+Serial port /dev/ttyUSB0
+Connecting......
+Chip is ESP32-D0WD (revision v1.0)
+Features: WiFi, BT, Dual Core, 240MHz, VRef calibration in efuse, Coding Scheme None
+Crystal is 40MHz
+MAC: 24:0a:c4:ea:36:b4
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00001000 to 0x00007fff...
+Flash will be erased from 0x00010000 to 0x00122fff...
+Flash will be erased from 0x00008000 to 0x00008fff...
+SHA digest in image updated
+Compressed 25904 bytes to 16353...
+Writing at 0x00001000... (100 %)
+Wrote 25904 bytes (16353 compressed) at 0x00001000 in 0.8 seconds (effective 268.7 kbit/s)...
+Hash of data verified.
+Compressed 1125536 bytes to 721596...
+Writing at 0x00010000... (2 %)
+Writing at 0x0001c0d2... (4 %)
+Writing at 0x00024454... (6 %)
+Writing at 0x000293e2... (8 %)
+Writing at 0x0002d9da... (11 %)
+Writing at 0x00036518... (13 %)
+Writing at 0x0003fb0f... (15 %)
+Writing at 0x0004541e... (17 %)
+Writing at 0x0004b330... (20 %)
+Writing at 0x000511d7... (22 %)
+Writing at 0x00057e35... (24 %)
+Writing at 0x0005daa5... (26 %)
+Writing at 0x000636c5... (28 %)
+Writing at 0x0006998f... (31 %)
+Writing at 0x00070222... (33 %)
+Writing at 0x000763cb... (35 %)
+Writing at 0x0007c342... (37 %)
+Writing at 0x000823d7... (40 %)
+Writing at 0x000881db... (42 %)
+Writing at 0x0008da56... (44 %)
+Writing at 0x000938bf... (46 %)
+Writing at 0x00099625... (48 %)
+Writing at 0x0009f2dc... (51 %)
+Writing at 0x000a51f3... (53 %)
+Writing at 0x000aaf39... (55 %)
+Writing at 0x000b1034... (57 %)
+Writing at 0x000b64fe... (60 %)
+Writing at 0x000bbf52... (62 %)
+Writing at 0x000c1af4... (64 %)
+Writing at 0x000c73a5... (66 %)
+Writing at 0x000ccacf... (68 %)
+Writing at 0x000d258f... (71 %)
+Writing at 0x000d82d3... (73 %)
+Writing at 0x000ddb4d... (75 %)
+Writing at 0x000e39ce... (77 %)
+Writing at 0x000e949d... (80 %)
+Writing at 0x000eee43... (82 %)
+Writing at 0x000f5a77... (84 %)
+Writing at 0x000ffbec... (86 %)
+Writing at 0x001051f8... (88 %)
+Writing at 0x0010b2ec... (91 %)
+Writing at 0x001114e5... (93 %)
+Writing at 0x00117610... (95 %)
+Writing at 0x0011cd7e... (97 %)
+Writing at 0x00122917... (100 %)
+Wrote 1125536 bytes (721596 compressed) at 0x00010000 in 16.4 seconds (effective 550.5 kbit/s)...
+Hash of data verified.
+Compressed 3072 bytes to 105...
+Writing at 0x00008000... (100 %)
+Wrote 3072 bytes (105 compressed) at 0x00008000 in 0.1 seconds (effective 416.3 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...

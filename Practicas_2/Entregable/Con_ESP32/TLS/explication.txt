@@ -1,0 +1,2 @@
+The IP adress of the TLS server hosted on the computer was 10.124.157.140
+The IP adress of the ESP32 card hosting the TLS client was 10.124.157.198

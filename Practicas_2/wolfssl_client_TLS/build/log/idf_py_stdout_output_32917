@@ -1,0 +1,116 @@
+Command: /home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/duke-nicolas/esp/v5.5.1/esp-idf/tools/idf_monitor.py -p /dev/ttyUSB0 -b 115200 --toolchain-prefix xtensa-esp32-elf- --target esp32 --revision 0 /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/wolfssl_client.elf /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/bootloader/bootloader.elf -m '/home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python' '/home/duke-nicolas/esp/v5.5.1/esp-idf/tools/idf.py'
+ets Jun  8 2016 00:22:57
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:6372
+load:0x40078000,len:15800
+load:0x40080400,len:3648
+entry 0x4008060c
+[0;32mI (27) boot: ESP-IDF v5.5.1-dirty 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Oct 12 2025 13:23:55[0m
+[0;33mW (27) boot: Unicore bootloader[0m
+[0;32mI (29) boot: chip revision: v1.0[0m
+[0;32mI (31) boot.esp32: SPI Speed      : 40MHz[0m
+[0;32mI (35) boot.esp32: SPI Mode       : DIO[0m
+[0;32mI (39) boot.esp32: SPI Flash Size : 2MB[0m
+[0;32mI (42) boot: Enabling RNG early entropy source...[0m
+[0;32mI (47) boot: Partition Table:[0m
+[0;32mI (49) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (62) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (69) boot:  2 factory          factory app      00 00 00010000 00177000[0m
+[0;32mI (75) boot: End of partition table[0m
+[0;32mI (79) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=29c84h (171140) map[0m
+[0;32mI (144) esp_image: segment 1: paddr=00039cac vaddr=3ffb0000 size=03514h ( 13588) load[0m
+[0;32mI (150) esp_image: segment 2: paddr=0003d1c8 vaddr=40080000 size=02e50h ( 11856) load[0m
+[0;32mI (155) esp_image: segment 3: paddr=00040020 vaddr=400d0020 size=cf01ch (847900) map[0m
+[0;32mI (445) esp_image: segment 4: paddr=0010f044 vaddr=40082e50 size=13c04h ( 80900) load[0m
+[0;32mI (477) esp_image: segment 5: paddr=00122c50 vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (488) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (488) boot: Disabling RNG early entropy source...[0m
+[0;32mI (499) cpu_start: Unicore app[0m
+[0;32mI (499) cpu_start: Single core mode[0m
+[0;32mI (507) cpu_start: Pro cpu start user code[0m
+[0;32mI (507) cpu_start: cpu freq: 240000000 Hz[0m
+[0;32mI (507) app_init: Application information:[0m
+[0;32mI (509) app_init: Project name:     wolfssl_client[0m
+[0;32mI (513) app_init: App version:      63cab55-dirty[0m
+[0;32mI (518) app_init: Compile time:     Oct 12 2025 13:41:23[0m
+[0;32mI (523) app_init: ELF file SHA256:  77720f030...[0m
+[0;32mI (527) app_init: ESP-IDF:          v5.5.1-dirty[0m
+[0;32mI (531) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (535) efuse_init: Max chip rev:     v3.99 [0m
+[0;32mI (539) efuse_init: Chip rev:         v1.0[0m
+[0;32mI (543) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (549) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM[0m
+[0;32mI (554) heap_init: At 3FFB7BF8 len 00028408 (161 KiB): DRAM[0m
+[0;32mI (560) heap_init: At 3FFE0440 len 0001FBC0 (126 KiB): D/IRAM[0m
+[0;32mI (565) heap_init: At 40078000 len 00008000 (32 KiB): IRAM[0m
+[0;32mI (570) heap_init: At 40096A54 len 000095AC (37 KiB): IRAM[0m
+[0;32mI (576) heap_init: At 3FF80000 len 00002000 (8 KiB): RTCRAM[0m
+[0;32mI (582) spi_flash: detected chip: generic[0m
+[0;32mI (585) spi_flash: flash io: dio[0m
+[0;33mW (588) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (600) main_task: Started on CPU0[0m
+[0;32mI (602) main_task: Calling app_main()[0m
+[0;32mI (606) main: ---------------- wolfSSL TLS Client Example ------------[0m
+[0;32mI (612) main: --------------------------------------------------------[0m
+[0;32mI (618) main: --------------------------------------------------------[0m
+[0;32mI (624) main: ---------------------- BEGIN MAIN ----------------------[0m
+[0;32mI (631) main: --------------------------------------------------------[0m
+[0;32mI (637) main: --------------------------------------------------------[0m
+[0;32mI (643) main: ESP_TASK_MAIN_STACK: 11012[0m
+[0;32mI (647) main: TASK_EXTRA_STACK_SIZE: 512[0m
+[0;32mI (650) main: Single threaded[0m
+[0;32mI (653) esp32_util: Extended Version and Platform Information.[0m
+[0;32mI (659) esp32_util: Chip revision: v1.0[0m
+[0;32mI (662) esp32_util: SSID and plain text WiFi password not displayed in startup logs.[0m
+[0;32mI (670) esp32_util:   Define SHOW_SSID_AND_PASSWORD to enable display.[0m
+[0;32mI (676) esp32_util: Using wolfSSL user_settings.h in //home//duke-nicolas//Documents//Ecole//Complutense//Clases//RPI2//Redes-y-protocoles-Internet-II//Practicas_2//wolfssl_client//components//wolfssl/include/user_settings.h[0m
+[0;32mI (696) esp32_util: LIBWOLFSSL_VERSION_STRING = 5.8.2[0m
+[0;32mI (700) esp32_util: LIBWOLFSSL_VERSION_HEX = 5008002[0m
+[0;32mI (705) esp32_util: ----------------------------------------------------------[0m
+[0;32mI (712) esp32_util: LIBWOLFSSL_CMAKE_OUTPUT:[0m
+[0;32mI (716) esp32_util: ----------------------------------------------------------[0m
+[0;32mI (723) esp32_util: Stack HWM: 9128[0m
+[0;32mI (726) esp32_util: [0m
+[0;32mI (728) esp32_util: Macro Name                 Defined   Not Defined[0m
+[0;32mI (734) esp32_util: ------------------------- --------- -------------[0m
+[0;32mI (740) esp32_util: NO_ESP32_CRYPT...........                 X[0m
+[0;32mI (746) esp32_util: NO_ESPIDF_DEFAULT........                 X[0m
+[0;32mI (752) esp32_util: HW_MATH_ENABLED..........     X[0m
+[0;32mI (756) esp32_util: WOLFSSL_SHA224...........     X[0m
+[0;32mI (761) esp32_util: WOLFSSL_SHA384...........     X[0m
+[0;32mI (765) esp32_util: WOLFSSL_SHA512...........     X[0m
+[0;32mI (770) esp32_util: WOLFSSL_SHA3.............                 X[0m
+[0;32mI (776) esp32_util: HAVE_ED25519.............     X[0m
+[0;32mI (780) esp32_util: HAVE_AES_ECB.............                 X[0m
+[0;32mI (786) esp32_util: HAVE_AES_DIRECT..........                 X[0m
+[0;32mI (791) esp32_util: USE_FAST_MATH............     X[0m
+[0;32mI (796) esp32_util: WOLFSSL_SP_MATH_ALL......                 X[0m
+[0;32mI (802) esp32_util: SP_MATH..................                 X[0m
+[0;32mI (807) esp32_util: WOLFSSL_HW_METRICS.......     X[0m
+[0;32mI (812) esp32_util: RSA_LOW_MEM..............     X[0m
+[0;32mI (817) esp32_util: SMALL_SESSION_CACHE......                 X[0m
+[0;32mI (822) esp32_util: WC_NO_HARDEN.............                 X[0m
+[0;32mI (828) esp32_util: TFM_TIMING_RESISTANT.....     X[0m
+[0;32mI (832) esp32_util: ECC_TIMING_RESISTANT.....     X[0m
+[0;32mI (837) esp32_util: WC_NO_CACHE_RESISTANT....     X[0m
+[0;32mI (842) esp32_util: WC_AES_BITSLICED.........                 X[0m
+[0;32mI (847) esp32_util: WOLFSSL_AES_NO_UNROLL....                 X[0m
+[0;32mI (853) esp32_util: TFM_TIMING_RESISTANT.....     X[0m
+[0;32mI (857) esp32_util: ECC_TIMING_RESISTANT.....     X[0m
+[0;32mI (862) esp32_util: WC_RSA_BLINDING..........     X[0m
+[0;32mI (867) esp32_util: NO_WRITEV................     X[0m
+[0;32mI (871) esp32_util: FREERTOS.................     X[0m
+[0;32mI (876) esp32_util: NO_WOLFSSL_DIR...........     X[0m
+[0;32mI (881) esp32_util: WOLFSSL_NO_CURRDIR.......     X[0m
+[0;32mI (885) esp32_util: WOLFSSL_LWIP.............     X[0m
+[0;32mI (890) esp32_util: [0m
+[0;32mI (892) esp32_util: Compiler Optimization: Default[0m
+[0;32mI (896) esp32_util: [0m
+[0;32mI (898) esp32_util: CONFIG_IDF_TARGET = esp32[0m
+[0;32mI (902

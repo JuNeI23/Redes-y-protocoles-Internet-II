@@ -1,0 +1,2 @@
+Command: ninja flahs
+ninja: error: unknown target 'flahs', did you mean 'flash'?

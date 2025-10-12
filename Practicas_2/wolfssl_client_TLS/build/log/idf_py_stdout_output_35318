@@ -1,0 +1,8 @@
+Command: ninja all
+[1/4] cd /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/esp-idf/esptool_py && /home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/duke-nicolas/esp/v5.5.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/partition_table/partition-table.bin /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/wolfssl_client.bin
+wolfssl_client.bin binary size 0x112ca0 bytes. Smallest app partition is 0x177000 bytes. 0x64360 bytes (27%) free.
+[2/4] Performing build step for 'bootloader'
+[1/1] cd /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/bootloader/esp-idf/esptool_py && /home/duke-nicolas/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/duke-nicolas/esp/v5.5.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/duke-nicolas/Documents/Ecole/Complutense/Clases/RPI2/Redes-y-protocoles-Internet-II/Practicas_2/wolfssl_client/build/bootloader/bootloader.bin
+Bootloader binary size 0x6530 bytes. 0xad0 bytes (10%) free.
+[3/4] No install step for 'bootloader'
+[4/4] Completed 'bootloader'
